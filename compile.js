@@ -1,9 +1,14 @@
 class Compile {
     constructor (el, vm) {
         this.el = this.isElementNode(el) ? el : document.querySelector(el);
+        this.vm = vm;
         if (this.el) {
+            // save to fragment
             let fragment = this.nodeToFragment(this.el);
+            // compile
             this.compile(fragment);
+            // send back to root node to display
+            this.el.appendChild(fragment);
         }
     }
 
@@ -33,18 +38,20 @@ class Compile {
         let nodeAttributes = node.attributes;
         Array.from(nodeAttributes).forEach((attribute) => {
             if (this.isDirective(attribute.name)) {
-                let result = attribute.value;
-                // TODO
+                let expr = attribute.value;
+                let type = attribute.name.split('-')[1];
+                CompileToolBox[type](node, this.vm, expr)
             }
         })
     }
     
     compileText(node) {
-        let text = node.textContent;
+        let expr = node.textContent;
         // get content between '{{}}'
         let reg = /\{\P([^}]+)\}\}/g;
-        if (reg.test(text)) {
-            //TODO
+        if (reg.test(expr)) {
+            let type = attribute.name.split('-')[1];
+            CompileToolBox['text'](node, this.vm, expr);
         }
     }
     // compiles the element node and the text node
@@ -59,25 +66,29 @@ class Compile {
             }
         })
     }
+}
 
-    CompileToolBox = {
-        text() {
+CompileToolBox = {
+    getVal (vm,expr) {
+        expr = expr.split('.');
+        return expr.reduce((prev, next)=> {
+            return prev[next]
+        }, vm.$data) // vm.$data will be the first 'prev', then iterate all the attribute in $data
+    },
+    text(node, vm, expr) {
 
+        this.updater['textUpdater']();
+    },
+    model(node, vm, expr) {
+        let modelUpdaterFn = this.updater['modelUpdater'];
+        modelUpdaterFn && modelUpdaterFn(node, this.getVal(vm, expr));
+    },
+    updater: {
+        textUpdater (node, value) {
+            node.textContent = value;
         },
-        model() {
-
-        },
-        updater: {
-            textUpdater (node, value) {
-                node.textContent = value;
-            },
-            modelUpdater (node, value) {
-                node.value = value
-            }
+        modelUpdater (node, value) {
+            node.value = value
         }
     }
-
-
-    
-
 }
