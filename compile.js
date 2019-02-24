@@ -48,9 +48,8 @@ class Compile {
     compileText(node) {
         let expr = node.textContent;
         // get content between '{{}}'
-        let reg = /\{\P([^}]+)\}\}/g;
+        let reg = /\{\{([^}]+)\}\}/g;
         if (reg.test(expr)) {
-            let type = attribute.name.split('-')[1];
             CompileToolBox['text'](node, this.vm, expr);
         }
     }
@@ -75,9 +74,15 @@ CompileToolBox = {
             return prev[next]
         }, vm.$data) // vm.$data will be the first 'prev', then iterate all the attribute in $data
     },
+    getTextVal (vm, expr) {
+       return expr.replace(/\{\{([^}]+)\}\}/g, (...arguments) => {
+            return this.getVal(vm, arguments[1]);
+        })
+    },
     text(node, vm, expr) {
-
-        this.updater['textUpdater']();
+        let textUpdateFn = this.updater['textUpdater'];
+        let value = this.getTextVal(vm, expr);
+        textUpdateFn && textUpdateFn(node, value);
     },
     model(node, vm, expr) {
         let modelUpdaterFn = this.updater['modelUpdater'];

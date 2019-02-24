@@ -10,9 +10,10 @@
 
 <body>
     <div id="app">
-        {{ message }}
+        <input type="text" l-model="message.a">
+        {{message.a}}
         <ul>
-            <li>{{ message }}</li>
+            <li>{{message.a}}</li>
         </ul>
     </div>
 
@@ -23,7 +24,9 @@
     let vm = new LiteMVVM({
         el:'#app',
         data:{
-            message: 'Hi this is liteMVVM, Jack Li is the author'
+            message: {
+                a: 'Hi this is liteMVVM, Jack Li is the author'
+            }
         }
     })
 </script>
